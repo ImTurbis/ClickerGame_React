@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import styles from '../styles/Game.module.css';
+import styles from '../../styles/Game.module.css';
 import Head from 'next/head';
 import axios from 'axios';
 
 
 
 export default function Game() {
-    const alias = useRef();
+    const alias = useRef(); 
     var seconds = 0;
 
     //Obtener ip
@@ -22,6 +22,7 @@ export default function Game() {
         required: 1000,
         clicks: 0,
         seconds: 0,
+        isActive: false
     })
 
     useEffect(() => {
@@ -30,6 +31,7 @@ export default function Game() {
     )
 
     useEffect(() => {
+        alert(`Guarda tu ID de juego: ${game.id}`)
         const localStorageGame = JSON.parse(localStorage.getItem(game.game));
         if(!localStorageGame) return alert('No hay nada en el localStorage');
         todoGame(() => {return {...localStorageGame}});
@@ -42,22 +44,22 @@ export default function Game() {
     var wins = game.wins;
     var clicksPerSecond = game.clicksPerSecond;
     var required = game.required;
-    var clicks = game.clicks;
-    var id = game.id;
+    var clicks = game.clicks; 
     var isLoad = false
 
     
     const handleClick = () => {
         if(points >= required) { 
             points = 0;
-            wins++;
+            wins++; 
             required = required * 2;
             todoGame((prevGame) => {
                 return {
                     ...prevGame,
-                    points: points,
-                    wins: wins,
-                    required: required,
+                    points: 0,
+                    clicks: prevGame.clicks + 1,
+                    wins: prevGame.wins + 1,
+                    required: prevGame.required * 2,
                 }
             })
         } else {
@@ -88,10 +90,11 @@ export default function Game() {
 
 
     const handleClickPerSecond = () => {
+        if(!game.isActive) return console.warn('No se a iniciado a dar clicks')
         todoGame((prevGame) => {
                 return {
                     ...prevGame,
-                    clicksPerSecond: prevGame.seconds / prevGame.clicks,
+                    clicksPerSecond: prevGame.clicks / prevGame.seconds,
                     seconds: prevGame.seconds + 1,
                 }
             }
@@ -126,17 +129,15 @@ export default function Game() {
                 <h3 className='clicks_per_second'>Clicks por segundo {game.clicksPerSecond}</h3>
                 <div>
                     <h4>Escribe tu alias aqui abajo</h4>
-                    <input type="text" placeholder='Alias' ref={alias} /><button onClick={handleAlias}>SetAlias</button>
+                    <input type="text" placeholder='Alias' defaultValue='null' ref={alias} /><button>SetAlias</button>
                 </div>
                 <button id="boton" onClick={handleClick}>Click aca!</button>
+                    <h3 id='nextjs'>Powered by: Next.js</h3>
+                    <h4>Segundos: {game.seconds}</h4>
                 <div id="end_game">
                 </div>
 
-                <div id="footer">
-                    <h3>Powered by: Next.js</h3>
-                    <h4>UUID de la partida: {game.id}</h4>
-                    <h5>Tiempo en la partida: {game.seconds}</h5>
-                </div>
+                
         </>
     );
 }
